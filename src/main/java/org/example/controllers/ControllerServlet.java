@@ -13,12 +13,6 @@ public class ControllerServlet extends HttpServlet {
         process(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        process(req, resp);
-    }
-
     private void process(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

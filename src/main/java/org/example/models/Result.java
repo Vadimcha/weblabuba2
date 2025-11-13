@@ -22,4 +22,37 @@ public class Result {
         this.status = status;
         this.error = error;
     }
+
+    // ===== Геттеры для JSP EL =====
+    public String getRun_time() {
+        return run_time;
+    }
+
+    public boolean isHit_status() {
+        return hit_status;
+    }
+
+    public BigDecimal getX() {
+        return x;
+    }
+
+    public BigDecimal getY() {
+        return y;
+    }
+
+    public BigDecimal getR() {
+        return r;
+    }
+
+    public String getRes() {
+        return res;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getError() {
+        return error;
+    }
 }

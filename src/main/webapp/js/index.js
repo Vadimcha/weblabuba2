@@ -1,4 +1,4 @@
-const API_URL="http://localhost:8080/fcgi-bin/app.jar/";
+const API_URL = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/controller`;
 
 const dotEl = document.getElementById('dot');
 const resEl = document.getElementById('res');
@@ -56,22 +56,26 @@ const isValueValid = (n, min, max) => {
 }
 
 const requestCalculations = (values) => {
-  const req = {
-    type: "calculate",
+  const params = new URLSearchParams({
     x: values[0],
     y: values[1],
-    r: values[2],
-  }
-  request(req);
+    r: values[2]
+  }).toString();
+
+  const url = `${API_URL}?${params}`;
+  request(url, values);
 }
 
-const request = (req) => {
+const request = (url, values) => {
   toggleLoading();
-  fetch(API_URL, {
-    method: 'post',
-    body: JSON.stringify(req),
-  }).then(res => res.text())
-    .then(res => processResponse(JSON.parse(res)));
+  fetch(url, {
+    method: 'GET'
+  })
+    .then(() => {
+      // processResponse(JSON.parse(res));
+      window.location.href = `controller?x=${values[0]}&y=${values[1]}&r=${values[2]}`;
+      placeDot(values)
+    });
 }
 
 const processResponse = (res) => {

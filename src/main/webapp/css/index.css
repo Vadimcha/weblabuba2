@@ -219,6 +219,7 @@ span.bold {
 #dot {
     display: none;
     position: absolute;
+    transform: translateX(-50%);
     border-radius: 100%;
     height: 10px;
     aspect-ratio: 1;

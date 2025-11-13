@@ -22,10 +22,12 @@
     <div class="header">
         <p class="name">Белов Вадим Алексеевич</p>
         <p class="group">Группа: <span class="bold">P3230</span></p>
-        <p class="variant">Вариант: <span class="bold">465186</span></p>
+        <p class="variant">Вариант: <span class="bold">81</span></p>
     </div>
     <div class="content">
-        <form id="form" action="controller" method="post">
+        <form
+            id="form"
+        >
             <div class="input">
                 <label for="x_input">Координата x</label>
                 <input

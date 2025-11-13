@@ -16,12 +16,14 @@ import java.math.BigDecimal;
 public class AreaCheckServlet extends HttpServlet {
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
             BigDecimal x = new BigDecimal(req.getParameter("x"));
             BigDecimal y = new BigDecimal(req.getParameter("y"));
             BigDecimal r = new BigDecimal(req.getParameter("r"));
+
+            System.out.println("AreaCheckServlet received request: x=" + x + ", y=" + y + ", r=" + r);
 
             RequestData data = new RequestData(x, y, r);
             Validator.validate(data);
@@ -35,7 +37,7 @@ public class AreaCheckServlet extends HttpServlet {
                     "ok", ""
             );
 
-            // сохраняем историю в сессию
+            // сохраняем историю и результат в сессию
             HttpSession session = req.getSession();
             History history = (History) session.getAttribute("history");
             if (history == null) {
@@ -43,17 +45,13 @@ public class AreaCheckServlet extends HttpServlet {
                 session.setAttribute("history", history);
             }
             history.add(result);
+            session.setAttribute("result", result);
 
-            req.setAttribute("result", result);
-            req.setAttribute("history", history.getAll());
-
-            RequestDispatcher dispatcher = req.getRequestDispatcher("/result.jsp");
-            dispatcher.forward(req, resp);
-
+            resp.sendRedirect(req.getContextPath() + "/result.jsp");
         } catch (Exception e) {
-            req.setAttribute("error", e.getMessage());
-            RequestDispatcher dispatcher = req.getRequestDispatcher("/index.jsp");
-            dispatcher.forward(req, resp);
+            HttpSession session = req.getSession();
+            session.setAttribute("error", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
         }
     }
 }
