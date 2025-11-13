@@ -1,0 +1,334 @@
+body {
+    position: relative;
+
+    font-family: var(--font-family), monospace;
+    font-size: var(--font-size);
+    color: var(--font-color);
+}
+
+span.bold {
+    font-weight: bold;
+}
+
+.header {
+    position: absolute;
+    top: 0;
+
+    width: calc(100vw - var(--header-padding-x) * 2);
+    height: calc(var(--header-height));
+
+    padding: var(--header-padding-y) var(--header-padding-x);
+    border-bottom: 1px solid lightgrey;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas:
+        "name group"
+        "variant group";
+
+
+    justify-content: space-between;
+    align-items: center;
+
+    .name {
+        grid-area: name;
+    }
+    .group {
+        grid-area: group;
+        text-align: right;
+    }
+    .variant {
+        grid-area: variant;
+    }
+}
+
+.content {
+    width: 660px;
+
+    position: absolute;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    align-items: center;
+}
+
+#form {
+    padding: 30px;
+
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    width: var(--input-block-width);
+}
+
+.input {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    > * {
+        margin-bottom: 2%;
+        &:last-child, &:nth-last-child(2) {
+            margin-bottom: 0;
+        }
+    }
+
+    & > label:after {
+        content: ':';
+    }
+}
+
+.input > input {
+    outline: none;
+
+    border: 1px solid lightgrey;
+    border-radius: 10px;
+    padding: 10px;
+
+    transition: border .25s ease-in-out;
+
+    &:focus {
+        border: 1px solid var(--color-inteface);
+    }
+}
+
+#x_input, #r_input {
+    display: none;
+}
+
+.x_buttons {
+    display: flex;
+    width: 100%;
+    margin-bottom: 0;
+    & > button {
+        flex: 1;
+        aspect-ratio: 1;
+        border: 1px solid lightgrey;
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: -1px;
+
+        &:first-child {
+            margin-left: 0;
+            border-radius: 10px 0 0 10px;
+        }
+        &:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        &:hover {
+            background-color: lightgrey;
+        }
+
+        &.selected {
+            background-color: var(--color-inteface);
+            color: white;
+
+            &:hover {
+                filter: brightness(90%);
+            }
+        }
+    }
+}
+
+.r_buttons {
+    display: flex;
+    width: 100%;
+    margin-bottom: 0;
+
+    .r_radio {
+        flex: 1;
+        aspect-ratio: 1;
+        height: 35px;
+        margin-left: -1px;
+
+        &:first-child {
+            margin-left: 0;
+            .custom_radio {
+                border-radius: 10px 0 0 10px;
+            }
+        }
+
+        &:last-child .custom_radio {
+            border-radius: 0 10px 10px 0;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        .custom_radio {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            border: 1px solid lightgrey;
+            background-color: transparent;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        &:hover .custom_radio {
+            background-color: lightgrey;
+        }
+
+        input[type="radio"]:checked + .custom_radio {
+            background-color: var(--color-inteface);
+            color: white;
+            border-color: var(--color-inteface);
+        }
+
+        input[type="radio"]:checked + .custom_radio:hover {
+            filter: brightness(90%);
+        }
+    }
+}
+
+.error {
+    display: inline;
+    height: 16px;
+    font-style: italic;
+
+    &:not([data-error=""]):after {
+        content: attr(data-error);
+        color: var(--color-error);
+        font-size: 12px;
+        margin-left: 5px;
+    }
+}
+
+.plot_block {
+    position: relative;
+}
+
+.plot {
+    cursor: pointer;
+    width: var(--plot-size);
+    aspect-ratio: 1;
+}
+
+#dot {
+    display: none;
+    position: absolute;
+    border-radius: 100%;
+    height: 10px;
+    aspect-ratio: 1;
+    background-color: var(--color-error);
+}
+
+.btn {
+    border: none;
+
+    background-color: var(--color-inteface);
+    color: white;
+    font-size: 18px;
+    border-radius: 10px;
+    padding: 10px;
+
+    transition: filter .25s ease-in-out;
+
+    &:hover {
+        filter: brightness(90%);
+    }
+
+    &:disabled {
+        filter: brightness(80%);
+        cursor: not-allowed;
+    }
+}
+
+#res {
+    height: 16px;
+    margin-left: 5px;
+
+    &[data-status="ok"] {
+        color: var(--color-ok);
+    }
+    &[data-status="loading"] {
+        color: var(--color-loading);
+        &:after {
+            content: 'Загрузка запроса';
+            height: 100%;
+
+        }
+    }
+    &[data-status="error"] {
+        color: var(--color-error);
+    }
+}
+
+.wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#table {
+
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#table[data-visible="false"] {
+    display: none;
+}
+
+.scrollable_container {
+    position: relative;
+    height: 200px;
+    width: 660px;
+    overflow-y: auto;
+}
+
+table {
+    border-collapse: collapse;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    width: 100%;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+tbody tr:hover {
+    background-color: #e6f7ff;
+    transition: background-color 0.2s;
+}
+
+.small_btn {
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#generate_btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}

@@ -1,0 +1,20 @@
+:root {
+    /*          UI              */
+    --font-family: "JetBrains Mono";
+    --font-color: #3a3a3a;
+    --font-size: 16px;
+
+    --color-inteface: #3399FE;
+    --color-ok: #00C200;
+    --color-error: #FF5252;
+    --color-loading: #ff9100;
+
+
+    /*          Sizes           */
+    --input-block-width: 300px;
+    --plot-size: 300px;
+
+    --header-height: 40px;
+    --header-padding-x: 20px;
+    --header-padding-y: 10px;
+}
