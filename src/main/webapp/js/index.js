@@ -68,18 +68,12 @@ const requestCalculations = (values) => {
 
 const request = (url, values) => {
   toggleLoading();
-  fetch(url, {
-    method: 'GET'
-  })
-    .then(() => {
-      // processResponse(JSON.parse(res));
-      window.location.href = `controller?x=${values[0]}&y=${values[1]}&r=${values[2]}`;
-      placeDot(values)
-    });
+  window.location.href = `controller?x=${values[0]}&y=${values[1]}&r=${values[2]}`;
+  placeDot(values)
+  toggleLoading()
 }
 
 const processResponse = (res) => {
-  toggleLoading();
   resetStyles();
 
   if(res.status === "get_table" || res.status === "reset_table") {
@@ -179,6 +173,7 @@ const generateDot = () => {
     btn.innerText = 'Сгенерировать';
     submitBtn.disabled = true;
     btn.style.backgroundColor = 'var(--color-error)';
+
     const x_btn = Math.random() * (window.innerHeight - btn.offsetHeight);
     const y_btn = Math.random() * (window.innerWidth - btn.offsetWidth);
     btn.style.bottom = 'unset';
@@ -189,12 +184,30 @@ const generateDot = () => {
     const x = Math.random() * (ranges[0][1] - ranges[0][0]) + ranges[0][0];
     const y = Math.random() * (ranges[1][1] - ranges[1][0]) + ranges[1][0];
     const r = Math.random() * (ranges[2][1] - ranges[2][0]) + ranges[2][0];
-    inputEls[0].value = x;
-    inputEls[1].value = y;
-    inputEls[2].value = r;
+
+    inputEls[0].value = x.toFixed(2);
+    inputEls[1].value = y.toFixed(2);
+    inputEls[2].value = r.toFixed(2);
+
+    const xButtons = document.querySelectorAll('.x_buttons button');
+    xButtons.forEach(b => b.classList.remove('selected'));
+    const nearestX = Math.round(x);
+    xButtons.forEach(b => {
+      if (parseFloat(b.textContent) === nearestX) b.classList.add('selected');
+    });
+
+    const rRadios = document.querySelectorAll('.r_radio input[type="radio"]');
+    rRadios.forEach(radio => {
+      radio.checked = false;
+      if (parseFloat(radio.value) === Math.round(r)) {
+        radio.checked = true;
+        inputEls[2].value = radio.value;
+      }
+    });
+
     placeDot([x, y, r]);
-  }, 2000)
-}
+  }, 2000);
+};
 document.getElementById('generate_btn').addEventListener('click', generateDot);
 
 // Инициализация кнопок for X

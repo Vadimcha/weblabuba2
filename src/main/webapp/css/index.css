@@ -53,6 +53,10 @@ span.bold {
 
     display: flex;
     align-items: center;
+
+    &[data-page='result'] {
+        width: 70vw;
+    }
 }
 
 #form {
@@ -274,11 +278,13 @@ span.bold {
 }
 
 #table {
-
     position: absolute;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
+    &[data-page="result"] {
+        bottom: auto;
+    }
 }
 #table[data-visible="false"] {
     display: none;
@@ -289,6 +295,13 @@ span.bold {
     height: 200px;
     width: 660px;
     overflow-y: auto;
+
+    &[data-page='result'] {
+        margin-bottom: 20px;
+        height: auto;
+        max-height: 50vw;
+        width: 70vw;
+    }
 }
 
 table {

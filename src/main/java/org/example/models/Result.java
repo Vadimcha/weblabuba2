@@ -55,4 +55,10 @@ public class Result {
     public String getError() {
         return error;
     }
+
+    @Override
+    public String toString() {
+        return String.format("X=%s, Y=%s, R=%s, Результат=%s, Время выполнения=%s нс",
+                x, y, r, res, run_time);
+    }
 }

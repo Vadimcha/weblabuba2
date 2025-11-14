@@ -8,11 +8,11 @@ import java.math.BigDecimal;
 public class Validator {
 
     private static final BigDecimal X_MIN = new BigDecimal("-5.0");
-    private static final BigDecimal X_MAX = new BigDecimal("5.0");
-    private static final BigDecimal Y_MIN = new BigDecimal("-5.0");
+    private static final BigDecimal X_MAX = new BigDecimal("3.0");
+    private static final BigDecimal Y_MIN = new BigDecimal("-3.0");
     private static final BigDecimal Y_MAX = new BigDecimal("5.0");
     private static final BigDecimal R_MIN = new BigDecimal("1.0");
-    private static final BigDecimal R_MAX = new BigDecimal("4.0");
+    private static final BigDecimal R_MAX = new BigDecimal("5.0");
 
     public static void validate(RequestData data) {
         BigDecimal x = data.x();

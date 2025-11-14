@@ -23,21 +23,15 @@ public class AreaCheckServlet extends HttpServlet {
             BigDecimal y = new BigDecimal(req.getParameter("y"));
             BigDecimal r = new BigDecimal(req.getParameter("r"));
 
-            System.out.println("AreaCheckServlet received request: x=" + x + ", y=" + y + ", r=" + r);
-
             RequestData data = new RequestData(x, y, r);
             Validator.validate(data);
 
             boolean hit = Calculator.calculate(data.toPoint());
             String runtime = Calculator.getRunTime();
 
-            Result result = new Result(
-                    runtime, hit, x, y, r,
-                    hit ? "Вы попали" : "Вы не попали",
-                    "ok", ""
-            );
+            Result result = new Result(runtime, hit, x, y, r,
+                    hit ? "Вы попали" : "Вы не попали", "ok", "");
 
-            // сохраняем историю и результат в сессию
             HttpSession session = req.getSession();
             History history = (History) session.getAttribute("history");
             if (history == null) {
@@ -47,11 +41,13 @@ public class AreaCheckServlet extends HttpServlet {
             history.add(result);
             session.setAttribute("result", result);
 
-            resp.sendRedirect(req.getContextPath() + "/result.jsp");
+            RequestDispatcher dispatcher = req.getRequestDispatcher("/result.jsp");
+            dispatcher.forward(req, resp);
+
         } catch (Exception e) {
-            HttpSession session = req.getSession();
-            session.setAttribute("error", e.getMessage());
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            req.setAttribute("error", e.getMessage());
+            RequestDispatcher dispatcher = req.getRequestDispatcher("/index.jsp");
+            dispatcher.forward(req, resp);
         }
     }
 }
