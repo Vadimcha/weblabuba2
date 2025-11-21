@@ -1,33 +1,53 @@
-package org.example.controllers;
-
-import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-
-@WebServlet("/controller")
-public class ControllerServlet extends HttpServlet {
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        process(req, resp);
-    }
-
-    private void process(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
-        String x = req.getParameter("x");
-        String y = req.getParameter("y");
-        String r = req.getParameter("r");
-
-        if (x != null && y != null && r != null) {
-            // есть данные → передаём в AreaCheckServlet
-            RequestDispatcher dispatcher = req.getRequestDispatcher("/check");
-            dispatcher.forward(req, resp);
-        } else {
-            // нет данных → показать форму
-            RequestDispatcher dispatcher = req.getRequestDispatcher("/index.jsp");
-            dispatcher.forward(req, resp);
-        }
-    }
-}
+//package org.example.controllers;
+//
+//import jakarta.servlet.*;
+//import jakarta.servlet.annotation.WebServlet;
+//import jakarta.servlet.http.*;
+//import org.example.models.RequestType;
+//
+//import java.io.IOException;
+//
+//@WebServlet("/api/*")
+//public class ControllerServlet extends HttpServlet {
+//
+//    @Override
+//    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//        processRequest(req, resp);
+//    }
+//
+//    @Override
+//    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+//        processRequest(req, resp);
+//    }
+//
+//    private void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+//        RequestType requestType = getRequestType(req);
+//
+//        if (requestType == RequestType.CALCULATE) {
+//            resp.sendRedirect("./private/area-check?" + req.getQueryString());
+//            return;
+//        }
+//        if (requestType == RequestType.CLEAR) {
+//            req.getRequestDispatcher("./private/clear").forward(req, resp);
+//            return;
+//        }
+//        if (requestType == RequestType.GET_ALL) {
+//            req.getRequestDispatcher("./private/get-all");
+//            return;
+//        }
+//    }
+//
+//    private RequestType getRequestType(HttpServletRequest req) {
+//        String raw = req.getParameter("requestType");
+//        if (raw == null) return RequestType.GET_ALL;
+//
+//        for (RequestType type : RequestType.values()) {
+//            if (type.jsonValue.equalsIgnoreCase(raw)) {
+//                return type;
+//            }
+//        }
+//
+//        return RequestType.GET_ALL;
+//    }
+//}
+//

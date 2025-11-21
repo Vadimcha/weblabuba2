@@ -1,43 +1,41 @@
-const API_URL = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/controller`;
+const API_URL = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/api`;
 
-const dotEl = document.getElementById('dot');
 const resEl = document.getElementById('res');
 const errorEls = document.getElementsByClassName('error');
 const inputEls = document.getElementsByClassName('field');
 const tableEl = document.getElementById('table');
 const submitBtn = document.getElementById('submit_btn');
 const plot = document.querySelector('.plot');
-const plot_size = 300;   // размер картинки
+const plot_size = 300;
 
-const ranges = [[-5, 3], [-3, 5], [1, 5]]
+const ranges = [[-5, 3], [-3, 5], [1, 5]];
 const errorText = "Число должно быть от MIN до MAX";
 
-
+// ======== Форма ========
 const handleSubmit = (e) => {
-  e.preventDefault();
-
   resetStyles();
+  const values = getData();
+  if (!isDataValid(values)) {
+    e.preventDefault();
+    drawPoints();
+    return;
+  }
 
-  const rowValues = getData();
-  if(!isDataValid(rowValues)) return;
-  const values = rowValues.map(value => String(value));
-  requestCalculations(values);
-}
+  // Отправка формы на сервлет с редиректом на result.jsp
+  // e.preventDefault();
+  // const formData = new FormData(document.getElementById('form'));
+  // const params = new URLSearchParams(formData).toString();
+  // window.location.href = `${API_URL}?${params}`;
+};
 document.getElementById('form').addEventListener('submit', handleSubmit);
 
-const getData = () => {
-  return Array.from(inputEls).map(el => el.value);
-}
+const getData = () => Array.from(inputEls).map(el => el.value);
 
 const isDataValid = (values) => {
   const errors = [];
   values.map((value, i) => {
     if(!isValueValid(value, ranges[i][0], ranges[i][1])) {
-      errors.push(
-        errorText
-          .replace('MIN', `${ranges[i][0]}`)
-          .replace('MAX', `${ranges[i][1]}`)
-      );
+      errors.push(errorText.replace('MIN', `${ranges[i][0]}`).replace('MAX', `${ranges[i][1]}`));
     } else errors.push('');
   });
   setErrors(errors);
@@ -46,121 +44,138 @@ const isDataValid = (values) => {
 
 const isValueValid = (n, min, max) => {
   const numberRegex = /^-?\d+(\.\d+)?$/;
-
-  if (!numberRegex.test(n)) {
-    return false;
-  }
-
+  if (!numberRegex.test(n)) return false;
   const num = Number(n);
   return num >= min && num <= max;
 }
 
-const requestCalculations = (values) => {
+const calculate = (values) => {
   const params = new URLSearchParams({
     x: values[0],
     y: values[1],
-    r: values[2]
+    r: values[2],
+    requestType: 'calculate',
+    from: 'plot'
   }).toString();
 
-  const url = `${API_URL}?${params}`;
-  request(url, values);
+  request(params);
+};
+
+const request = (params) => {
+  fetch(`${API_URL}?${params}`, { method: 'GET', headers: { 'Accept': 'application/json' } })
+    .then(response => response.json())
+    .then(data => processResponse(data))
+    .catch(err => {
+      console.error(err);
+      resEl.setAttribute('data-status', 'error');
+      resEl.innerText = 'Ошибка при запросе к серверу';
+    });
 }
 
-const request = (url, values) => {
-  toggleLoading();
-  window.location.href = `controller?x=${values[0]}&y=${values[1]}&r=${values[2]}`;
-  placeDot(values)
-  toggleLoading()
-}
-
+// ======== Обработка ответа API ========
 const processResponse = (res) => {
   resetStyles();
 
-  if(res.status === "get_table" || res.status === "reset_table") {
+  if(res.status === "get_table") {
     renderTable(res.history);
-  }
-  else if(res.status === "error") {
+  } else if (res.status === "clear") {
+    renderTable(res.history);
+    tableEl.setAttribute('data-visible', "false")
+    drawPoints();
+  } else if(res.status === "error") {
     resEl.setAttribute('data-status', "error");
     resEl.innerText = res.error;
     renderTable(res.history);
-  }
-  else {
-    resEl.setAttribute('data-status', res.history[0].hit_status ? "ok" : "error");
+  } else {
+    const hit = res.history[0].hit_status;
+    resEl.setAttribute('data-status', hit ? "ok" : "error");
     resEl.innerText = res.history[0].res;
     placeDot([parseFloat(res.history[0].x), parseFloat(res.history[0].y), parseFloat(res.history[0].r)]);
     renderTable(res.history);
   }
+  drawPoints()
 }
 
-const placeDot = (values) => {
+// ======== График ========
+const placeDot = (values, color, isTemp = true) => {
+  const plotBlock = document.querySelector(".plot_block");
+
+  plotBlock.querySelectorAll(".temporary").forEach(dot => dot.remove());
+
   const center = plot_size / 2;
-  const rpx = (plot_size - 85) / 2;  // R в пикселях
-  const scale = rpx / values[2];    // пикселей на 1 единицу по оси R
+  const rpx = (plot_size - 85) / 2;
+  const scale = rpx / values[2];
 
-  const px = center + values[0] * scale;
-  const py = center + values[1] * scale;
+  const dot = document.createElement("div");
+  dot.classList.add("plot-dot");
 
-  dotEl.style.display = 'block';
-  dotEl.style.left = `${px}px`;
-  dotEl.style.bottom = `${py}px`;
-}
+  if (isTemp) {
+    dot.classList.add("temporary");
+  }
 
+  dot.style.backgroundColor = color;
+  dot.style.left = `${center + values[0] * scale}px`;
+  dot.style.bottom = `${center + values[1] * scale}px`;
+
+  plotBlock.appendChild(dot);
+};
+
+
+// ======== Стили и ошибки ========
 const resetStyles = () => {
   resEl.removeAttribute('data-status');
   resEl.innerText = '';
-  dotEl.style.display = 'none';
-  Array.from(errorEls).forEach(errorEl => errorEl.removeAttribute('data-error'));
+  Array.from(errorEls).forEach(el => el.removeAttribute('data-error'));
 }
 
 const setErrors = (errors) => {
-  errors.map((error, i) => {
+  errors.forEach((error, i) => {
     errorEls[i].setAttribute('data-error', error);
-  })
+  });
 }
 
-const toggleLoading = () => {
-  if (resEl.getAttribute('data-status') === 'loading')
-    resEl.setAttribute('data-status', 'loading');
-  else resEl.removeAttribute('data-status');
-}
-
+// ======== Таблица ========
 const renderTable = (history) => {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-
   tableEl.setAttribute('data-visible', 'true');
+
   history.forEach((row, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td data-label="Запрос №">${history.length - index}</td>
-        <td data-label="RunTime (нано сек)">${row.run_time}</td>
-        <td data-label="Координата X">${row.x}</td>
-        <td data-label="Координата Y">${row.y}</td>
-        <td data-label="Значение R">${row.r}</td>
-        <td data-label="Результат">${row.res}</td>
-      `;
+      <td>${history.length - index}</td>
+      <td>${row.run_time}</td>
+      <td>${row.x}</td>
+      <td>${row.y}</td>
+      <td>${row.r}</td>
+      <td>${row.res}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-const resetTable = () => {
-  tableRequests("reset_table");
-}
-document.getElementById('clear').addEventListener('click', resetTable);
+const clear = () => {
+  const params = new URLSearchParams({
+    requestType: 'clear'
+  }).toString();
+  request(params);
+};
+document.getElementById('clear').addEventListener('click', clear);
 
-const tableRequests = (type) => {
-  const req = {
-    type,
-  }
-  request(req);
-}
-window.addEventListener("load", () => tableRequests("get_table"));
+// const getAll = () => {
+//   const params = new URLSearchParams({
+//     requestType: 'get-all'
+//   }).toString();
+//   request(params);
+// }
+// window.addEventListener("load", () => getAll());
 
+// ======== Генерация случайной точки ========
 let intervalId = null;
 const generateDot = () => {
   const btn = document.getElementById('generate_btn');
 
-  if (intervalId !== null) {
+  if(intervalId !== null) {
     submitBtn.disabled = false;
     clearInterval(intervalId);
     intervalId = null;
@@ -174,41 +189,44 @@ const generateDot = () => {
     submitBtn.disabled = true;
     btn.style.backgroundColor = 'var(--color-error)';
 
-    const x_btn = Math.random() * (window.innerHeight - btn.offsetHeight);
-    const y_btn = Math.random() * (window.innerWidth - btn.offsetWidth);
-    btn.style.bottom = 'unset';
-    btn.style.right = 'unset';
-    btn.style.top = x_btn + 'px';
-    btn.style.left = y_btn + 'px';
-
-    const x = Math.random() * (ranges[0][1] - ranges[0][0]) + ranges[0][0];
-    const y = Math.random() * (ranges[1][1] - ranges[1][0]) + ranges[1][0];
-    const r = Math.random() * (ranges[2][1] - ranges[2][0]) + ranges[2][0];
+    const x = Math.random()*(ranges[0][1]-ranges[0][0])+ranges[0][0];
+    const y = Math.random()*(ranges[1][1]-ranges[1][0])+ranges[1][0];
+    const r = Math.random()*(ranges[2][1]-ranges[2][0])+ranges[2][0];
 
     inputEls[0].value = x.toFixed(2);
     inputEls[1].value = y.toFixed(2);
     inputEls[2].value = r.toFixed(2);
 
-    const xButtons = document.querySelectorAll('.x_buttons button');
-    xButtons.forEach(b => b.classList.remove('selected'));
-    const nearestX = Math.round(x);
-    xButtons.forEach(b => {
-      if (parseFloat(b.textContent) === nearestX) b.classList.add('selected');
-    });
-
-    const rRadios = document.querySelectorAll('.r_radio input[type="radio"]');
-    rRadios.forEach(radio => {
-      radio.checked = false;
-      if (parseFloat(radio.value) === Math.round(r)) {
-        radio.checked = true;
-        inputEls[2].value = radio.value;
-      }
-    });
-
     placeDot([x, y, r]);
   }, 2000);
 };
 document.getElementById('generate_btn').addEventListener('click', generateDot);
+
+// ======== Клик по графику ========
+const handlePlotClick = (event) => {
+  resetStyles();
+  const R = getData()[2];
+  if(!isValueValid(R, ranges[2][0], ranges[2][1])) {
+    setErrors(['','','Значение R некорректно']);
+    return;
+  }
+
+  const rect = plot.getBoundingClientRect();
+  const center = plot_size/2;
+  const scale = (plot_size-85)/2 / R;
+
+  const x_val = (event.clientX - rect.left - center)/scale;
+  const y_val = (center - (event.clientY - rect.top))/scale;
+
+  calculate([x_val, y_val, R]);
+}
+plot.addEventListener('click', handlePlotClick);
+
+const handleInputsChange = () => {
+  placeDot(getData());
+}
+Array.from(inputEls).forEach(el => el.addEventListener('input', handleInputsChange));
+
 
 // Инициализация кнопок for X
 document.addEventListener("DOMContentLoaded", () => {
@@ -230,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       buttonContainer.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
       inputField.value = i;
+      handleInputsChange();
     });
 
     buttonContainer.appendChild(btn);
@@ -261,6 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     radio.addEventListener("change", () => {
       if (radio.checked) {
         inputField.value = i;
+        handleInputsChange();
       }
     });
 
@@ -269,33 +289,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-const handlePlotClick = (event) => {
-  resetStyles();
-  const R = getData()[2];
-  if(!isValueValid(R, ranges[2][0], ranges[2][1])) {
-    setErrors([
-      '',
-      '',
-      errorText
-        .replace('MIN', ranges[2][0])
-        .replace('MAX', ranges[2][1])
-    ])
-    return;
-  }
+const drawPoints = () => {
+  const rows = document.querySelectorAll("#tbody tr");
 
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
 
-  const rect = plot.getBoundingClientRect();
-  const center = plot_size / 2;
-  const rpx = (plot_size - 85) / 2;
-  const scale = rpx / R;
+    const x = parseFloat(cells[2].textContent);
+    const y = parseFloat(cells[3].textContent);
+    const r = parseFloat(cells[4].textContent);
+    const color = cells[5].textContent.trim() === "Вы попали" ? "springgreen" : "red";
+    console.log("POINT", x, y, r, color)
+    placeDot([ x, y, r], color, false);
+  });
+};
 
-  const x_click = event.clientX - rect.left;
-  const y_click = event.clientY - rect.top;
+window.addEventListener("pageshow", () => {
+  drawPoints();
+});
 
-  const x_val = (x_click - center) / scale;
-  const y_val = (center - y_click) / scale;
-
-  const values = [x_val, y_val, R].map(value => String(value));
-  requestCalculations(values);
-}
-plot.addEventListener('click', handlePlotClick);
+window.addEventListener("popstate", () => {
+  drawPoints();
+});
